@@ -50,8 +50,8 @@ class Post(db.Model):
     media_url = db.Column(db.String(500))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    group_id = db.Column(db.Integer, db.ForeignKey('groups.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # Corrected the reference
+    group_id = db.Column(db.Integer, db.ForeignKey('groups.id'), nullable=False)  # Corrected the reference
 
     def __repr__(self):
         return f"<Post {self.content[:20]}...>"
@@ -66,3 +66,5 @@ class TokenBlocklist(db.Model):
 
     def __repr__(self):
         return f"<Blocked Token {self.jti}>"
+
+

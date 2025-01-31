@@ -1,172 +1,132 @@
-from flask import jsonify, request, Blueprint
-from models import db, User, Group, Post
-from werkzeug.security import generate_password_hash
-from app import app, mail
-from flask_mail import Message
+from flask import Blueprint, jsonify, request
+from models import db, User
+from werkzeug.security import generate_password_hash 
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
-user_bp = Blueprint("user_bp", __name__)
+user_bp = Blueprint('user_bp', __name__)
 
-# ==================================USER ROUTES======================================
-# Fetch All Users with Groups and Posts
-@user_bp.route("/users", methods=["GET"])
-def fetch_users():
-    users = User.query.all()
-
-    user_list = []
-    for user in users:
-        user_list.append({
-            'id': user.id,
-            'email': user.email,
-            'is_approved': user.is_approved,
-            'is_admin': user.is_admin,
-            'username': user.username,
-            'hobbies': user.hobbies,  # Include hobbies
-            "groups": [
-                {
-                    "id": group.id,
-                    "title": group.title,
-                    "description": group.description,
-                } for group in user.groups  # Assuming there's a relationship between user and groups
-            ],
-            "posts": [
-                {
-                    "id": post.id,
-                    "content": post.content,
-                    "media_url": post.media_url,
-                    "group": {
-                        "id": post.group.id,
-                        "title": post.group.title
-                    }
-                } for post in user.posts  # Assuming there's a relationship between user and posts
-            ]
-        })
-    return jsonify(user_list), 200
-
-
-# Add New User
-@user_bp.route("/users", methods=["POST"])
+# CREATE - Add New User
+@user_bp.route('/users', methods=['POST'])
 def add_user():
     data = request.get_json()
     username = data['username']
     email = data['email']
-    password = generate_password_hash(data['password'])  # Hash password
-    hobbies = data.get('hobbies', "No hobbies specified")  # Default if hobbies not provided
+    password = data['password']  # Plain password (we'll hash it)
+    hobbies = data.get('hobbies', 'No hobbies specified')  # Optional hobbies
 
     # Check if the username or email already exists
-    check_username = User.query.filter_by(username=username).first()
-    check_email = User.query.filter_by(email=email).first()
+    existing_user = User.query.filter_by(username=username).first()
+    if existing_user:
+        return jsonify({"error": "Username already exists"}), 400
 
-    if check_username or check_email:
-        return jsonify({"error": "Username or email already exists"}), 406
+    existing_email = User.query.filter_by(email=email).first()
+    if existing_email:
+        return jsonify({"error": "Email already exists"}), 400
 
-    # Check if this is the first user to register
-    first_user = User.query.first()  # Get the first user (if any)
-    if not first_user:  # If no users exist, this will be the first user
-        is_admin = True
-        is_approved = True
-        is_verified = True
-    else:
-        is_admin = False
-        is_approved = False
-        is_verified = False
+    # Hash the password before saving to the database
+    hashed_password = generate_password_hash(password)
 
-    # Create new user
-    new_user = User(username=username, email=email, password=password, hobbies=hobbies,
-                    is_admin=is_admin, is_approved=is_approved, is_verified=is_verified)
+    # Create a new user
+    new_user = User(username=username, email=email, password=hashed_password, hobbies=hobbies)
 
     try:
         db.session.add(new_user)
         db.session.commit()
-
-        # Send welcome email
-        try:
-            msg = Message(
-                subject="Welcome to Hobbyist App",
-                sender=app.config["MAIL_DEFAULT_SENDER"],
-                recipients=[email],
-                body="Thank you for signing up with us. We hope you enjoy using our app!"
-            )
-            mail.send(msg)
-        except Exception as e:
-            return jsonify({"error": f"Failed to send email: {e}"}), 500
-
         return jsonify({"msg": "User created successfully!"}), 201
-
     except Exception as e:
-        db.session.rollback()  # Rollback in case of error
+        db.session.rollback()
         return jsonify({"error": f"Failed to create user: {e}"}), 500
 
+# READ - Get All Users (Admin only)
+@user_bp.route('/users', methods=['GET'])
+@jwt_required()  # Ensure the request is authenticated
+def get_users():
+    current_user_id = get_jwt_identity()
+    
+    # Only admins should be able to view all users
+    current_user = User.query.get(current_user_id)
+    if not current_user or not current_user.is_admin:
+        return jsonify({"error": "Access denied. Admins only."}), 403
 
-# Update User (Includes updating groups, posts, hobbies if needed)
-@user_bp.route("/users/<int:user_id>", methods=["PATCH"])
-def update_user(user_id):
+    users = User.query.all()
+    user_list = [
+        {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "hobbies": user.hobbies
+        } for user in users
+    ]
+    return jsonify(user_list), 200
+
+# READ - Get a User by ID
+@user_bp.route('/users/<int:user_id>', methods=['GET'])
+@jwt_required()  # Ensure the request is authenticated
+def get_user(user_id):
+    current_user_id = get_jwt_identity()
+
+    # Only allow access to the requested user or an admin
     user = User.query.get(user_id)
+    if not user or (user_id != current_user_id and not User.query.get(current_user_id).is_admin):
+        return jsonify({"error": "User not found or unauthorized access"}), 404
 
-    if not user:
-        return jsonify({"error": "User not found!"}), 404
+    user_details = {
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "hobbies": user.hobbies
+    }
+
+    return jsonify(user_details), 200
+
+# UPDATE - Update User Info
+@user_bp.route('/users/<int:user_id>', methods=['PUT'])
+@jwt_required()  # Ensure the request is authenticated
+def update_user(user_id):
+    current_user_id = get_jwt_identity()
+
+    # Only allow the user to update their own info or an admin
+    if user_id != current_user_id and not User.query.get(current_user_id).is_admin:
+        return jsonify({"error": "Unauthorized access"}), 403
 
     data = request.get_json()
-    username = data.get('username', user.username)
-    email = data.get('email', user.email)
-    password = data.get('password', None)  # Password is optional
-    hobbies = data.get('hobbies', user.hobbies)  # Update hobbies if provided, else keep the old value
+    username = data.get('username')
+    email = data.get('email')
+    hobbies = data.get('hobbies')
 
-    # Check if username/email is already taken
-    check_username = User.query.filter(User.username == username, User.id != user.id).first()
-    check_email = User.query.filter(User.email == email, User.id != user.id).first()
-
-    if check_username or check_email:
-        return jsonify({"error": "Username or email already exists"}), 406
-
-    # Hash the password if it’s being updated
-    if password:
-        password = generate_password_hash(password)
-
-    try:
-        user.username = username
-        user.email = email
-        if password:
-            user.password = password
-        user.hobbies = hobbies  # Update hobbies
-
-        # If the user is updating any associated data (e.g., groups, posts), handle it
-        if 'groups' in data:
-            for group_data in data['groups']:
-                group = Group.query.get(group_data['id'])
-                if group:
-                    group.title = group_data.get('title', group.title)
-                    group.description = group_data.get('description', group.description)
-                    db.session.commit()
-
-        if 'posts' in data:
-            for post_data in data['posts']:
-                post = Post.query.get(post_data['id'])
-                if post and post.user_id == user.id:
-                    post.content = post_data.get('content', post.content)
-                    post.media_url = post_data.get('media_url', post.media_url)
-                    post.group_id = post_data.get('group_id', post.group_id)
-                    db.session.commit()
-
-        db.session.commit()
-        return jsonify({"success": "User updated successfully!"}), 200
-
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": f"Failed to update user: {e}"}), 500
-
-
-# Delete User
-@user_bp.route("/users/<int:user_id>", methods=["DELETE"])
-def delete_user(user_id):
+    # Get the user object
     user = User.query.get(user_id)
-
     if not user:
-        return jsonify({"error": "User not found!"}), 404
+        return jsonify({"error": "User not found"}), 404
 
-    try:
-        db.session.delete(user)
-        db.session.commit()
-        return jsonify({"success": "User deleted successfully!"}), 200
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": f"Failed to delete user: {e}"}), 500
+    # Update the fields if provided
+    if username:
+        user.username = username
+    if email:
+        user.email = email
+    if hobbies:
+        user.hobbies = hobbies
+
+    db.session.commit()
+
+    return jsonify({"msg": "User updated successfully!"}), 200
+
+# DELETE - Delete User
+@user_bp.route('/users/<int:user_id>', methods=['DELETE'])
+@jwt_required()  # Ensure the request is authenticated
+def delete_user(user_id):
+    current_user_id = get_jwt_identity()
+
+    # Only allow the user to delete their own account or an admin
+    if user_id != current_user_id and not User.query.get(current_user_id).is_admin:
+        return jsonify({"error": "Unauthorized access"}), 403
+
+    # Get the user object
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    db.session.delete(user)
+    db.session.commit()
+
+    return jsonify({"msg": "User deleted successfully!"}), 200

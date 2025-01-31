@@ -1,0 +1,59 @@
+/* style.css */
+
+/* General Container Styling */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  /* GroupPage specific styles */
+  .group-page .card {
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+  }
+  
+  .group-page .card-body {
+    padding: 20px;
+  }
+  
+  .group-page .card img {
+    max-width: 100%;
+    height: auto;
+    margin-top: 15px;
+  }
+  
+  /* AboutPage specific styles */
+  .about-container {
+    text-align: center;
+    padding: 50px 20px;
+  }
+  
+  .about-title {
+    font-size: 2.5rem;
+    color: #2c3e50;
+    margin-bottom: 20px;
+  }
+  
+  .about-text {
+    font-size: 1.1rem;
+    color: #7f8c8d;
+    margin-bottom: 30px;
+    line-height: 1.6;
+  }
+  
+  .about-actions .btn {
+    margin-top: 15px;
+    margin-right: 10px;
+  }
+  
+  .about-actions .btn-primary {
+    background-color: #3498db;
+    border-color: #3498db;
+  }
+  
+  .about-actions .btn-secondary {
+    background-color: #2ecc71;
+    border-color: #2ecc71;
+  }
+  
