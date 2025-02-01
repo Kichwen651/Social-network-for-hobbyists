@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getPosts, fetchGroups } from '../services/api'; // Assuming the service functions are correct
+import { fetchGroupPosts, fetchGroups } from '../services/api'; // Assuming these service functions are correct
 import Post from '../components/Post';
 import GroupCard from '../components/GroupCard';
 import { Button } from 'react-bootstrap';
@@ -13,19 +13,25 @@ const SearchPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Fetch posts and groups for initial rendering
+  // Fetch groups and posts for initial rendering
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
         setLoading(true);
         setError(null);  // Clear previous errors
-        const postsData = await getPosts();
-        const groupsData = await fetchGroups();
+        const groupsData = await fetchGroups();  // Fetch all groups
         
+        // Fetch posts for each group
+        const postsPromises = groupsData.map(group => fetchGroupPosts(group.id));  // Get posts for each group
+        const postsData = await Promise.all(postsPromises);  // Resolve all posts for each group
+
+        // Flatten the posts data into a single array
+        const allPosts = postsData.flat();
+
         // Ensure data is valid
-        if (postsData && groupsData) {
+        if (groupsData && allPosts) {
           setSearchResults({
-            posts: postsData,
+            posts: allPosts,
             groups: groupsData,
           });
         } else {
@@ -53,10 +59,10 @@ const SearchPage = () => {
     try {
       // Filter posts and groups based on the query
       const filteredPosts = searchResults.posts.filter(post =>
-        post.title.toLowerCase().includes(queryValue.toLowerCase())
+        post.content.toLowerCase().includes(queryValue.toLowerCase())
       );
       const filteredGroups = searchResults.groups.filter(group =>
-        group.name.toLowerCase().includes(queryValue.toLowerCase())
+        group.title.toLowerCase().includes(queryValue.toLowerCase())
       );
 
       setSearchResults({

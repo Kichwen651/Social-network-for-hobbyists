@@ -1,9 +1,9 @@
 import axios from 'axios';
+import { isAuthenticated, getAuthToken } from '../utils/auth';  // Correct path to auth.js
 
-// Base URL for your API
-const apiUrl = 'http://localhost:5000/api';  // Replace with your API base URL
+const apiUrl = 'http://localhost:5000/api';  // Your API base URL
 
-// Create an Axios instance
+// Create an Axios instance with default settings
 const api = axios.create({
   baseURL: apiUrl,
   headers: {
@@ -11,80 +11,131 @@ const api = axios.create({
   },
 });
 
-// Set the Authorization header with a token (if available)
-export const setAuthHeader = (token) => {
-  if (token) {
-    api.defaults.headers['Authorization'] = `Bearer ${token}`;
+// Function to set the Authorization header based on authentication status
+export const setAuthHeader = () => {
+  const token = getAuthToken();  // Get the token from localStorage
+
+  if (isAuthenticated() && token) {
+    api.defaults.headers['Authorization'] = `Bearer ${token}`; // Add token to request headers if authenticated
   } else {
-    delete api.defaults.headers['Authorization'];
+    delete api.defaults.headers['Authorization']; // Remove the Authorization header if not authenticated
   }
 };
 
-// Get all posts
-export const getPosts = () => {
-  return api.get('/posts');
+// GET: Get posts for a specific group by ID
+export const fetchGroupPosts = (groupId) => {
+  setAuthHeader(); // Ensure the Authorization header is set before the request
+  return api.get(`/group/${groupId}/posts`)
+    .then(response => response.data)
+    .catch(error => {
+      throw error.response ? error.response.data : error.message;
+    });
 };
 
-// Get posts by a specific user
-export const getUserPosts = (userId) => {
-  return api.get(`/user/${userId}/posts`);
-};
-
-// Get posts in a specific group
-export const getGroupPosts = (groupId) => {
-  return api.get(`/group/${groupId}/posts`);
-};
-
-// Fetch all groups (new function)
-export const fetchGroups = () => {
-  return api.get('/groups');  // Assuming your API has an endpoint to fetch all groups
-};
-
-// Login user and get token
+// POST: Login to get a JWT token
 export const login = (email, password) => {
-  return api.post('/login', { email, password });
+  return api.post('/login', { email, password })
+    .then(response => response.data)
+    .catch(error => {
+      throw error.response ? error.response.data : error.message;
+    });
 };
 
-// Logout user and invalidate token
+// POST: Logout the user and invalidate the JWT token
 export const logout = () => {
-  return api.post('/logout');
+  localStorage.removeItem("authToken");  // Remove token on logout
+  return api.post('/logout')
+    .then(response => response.data)
+    .catch(error => {
+      throw error.response ? error.response.data : error.message;
+    });
 };
 
-// Get current user info (requires JWT token)
-export const getCurrentUser = () => {
-  return api.get('/current_user');
+// POST: Register a new user
+export const register = (email, password, username) => {
+  return api.post('/register', { email, password, username })
+    .then(response => response.data)
+    .catch(error => {
+      throw error.response ? error.response.data : error.message;
+    });
 };
 
-// ================================== UPDATE ==================================
-
-// Update post by ID
-export const updatePost = (postId, data) => {
-  return api.put(`/posts/${postId}`, data);  // Pass updated content, media_url, or group_id as part of `data`
+// GET: Fetch all groups (if applicable)
+export const fetchGroups = () => {
+  setAuthHeader(); // Ensure the Authorization header is set before the request
+  return api.get('/groups')
+    .then(response => response.data)
+    .catch(error => {
+      throw error.response ? error.response.data : error.message;
+    });
 };
 
-// Update group by ID
-export const updateGroup = (groupId, data) => {
-  return api.put(`/group/${groupId}`, data);  // Pass updated title, description, etc.
-};
-
-// Update user profile (if your API supports it, e.g., email, username, etc.)
+// PUT: Update user profile (e.g., username, email)
 export const updateUser = (userId, data) => {
-  return api.put(`/user/${userId}`, data);  // Pass updated user information
+  setAuthHeader(); // Ensure the Authorization header is set before the request
+  return api.put(`/user/${userId}`, data)
+    .then(response => response.data)
+    .catch(error => {
+      throw error.response ? error.response.data : error.message;
+    });
 };
 
-// ================================== DELETE ==================================
-
-// Delete post by ID
-export const deletePost = (postId) => {
-  return api.delete(`/posts/${postId}`);
-};
-
-// Delete group by ID
-export const deleteGroup = (groupId) => {
-  return api.delete(`/group/${groupId}`);
-};
-
-// Delete user account (if supported by your API)
+// DELETE: Delete a user by ID
 export const deleteUser = (userId) => {
-  return api.delete(`/user/${userId}`);
+  setAuthHeader(); // Ensure the Authorization header is set before the request
+  return api.delete(`/user/${userId}`)
+    .then(response => response.data)
+    .catch(error => {
+      throw error.response ? error.response.data : error.message;
+    });
+};
+
+// DELETE: Delete a group by ID
+export const deleteGroup = (groupId) => {
+  setAuthHeader(); // Ensure the Authorization header is set before the request
+  return api.delete(`/group/${groupId}`)
+    .then(response => response.data)
+    .catch(error => {
+      throw error.response ? error.response.data : error.message;
+    });
+};
+
+// PUT: Update a group by ID
+export const updateGroup = (groupId, data) => {
+  setAuthHeader(); // Ensure the Authorization header is set before the request
+  return api.put(`/group/${groupId}`, data)
+    .then(response => response.data)
+    .catch(error => {
+      throw error.response ? error.response.data : error.message;
+    });
+};
+
+// POST: Create a new post in a specific group
+export const addPost = (data) => {
+  setAuthHeader(); // Ensure the Authorization header is set before the request
+  return api.post('/posts', data)
+    .then(response => response.data)
+    .catch(error => {
+      throw error.response ? error.response.data : error.message;
+    });
+};
+
+// PUT: Update a post by ID
+export const updatePost = (postId, data) => {
+  setAuthHeader(); // Ensure the Authorization header is set before the request
+  return api.put(`/posts/${postId}`, data)
+    .then(response => response.data)
+    .catch(error => {
+      throw error.response ? error.response.data : error.message;
+    });
+};
+
+// DELETE: Delete a post by ID
+export const deletePost = (postId) => {
+  setAuthHeader(); // Ensure the Authorization header is set before the request
+  return api.delete(`/posts/${postId}`)
+    .then(response => response.data)
+    .catch(error => {
+      throw error.response ? error.response.data : error.message;
+    });
 };

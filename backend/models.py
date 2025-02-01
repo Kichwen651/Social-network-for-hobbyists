@@ -14,7 +14,7 @@ class User(db.Model):
     email = db.Column(db.String(128), nullable=False, unique=True)
     is_approved = db.Column(db.Boolean, default=False)
     is_admin = db.Column(db.Boolean, default=False)
-    password = db.Column(db.String(128), nullable=False)
+    password = db.Column(db.String(512), nullable=False)
 
     hobbies = db.Column(db.String(500), nullable=True, default="No hobbies specified")  # Set default value
     is_verified = db.Column(db.Boolean, default=False)  # Used for account verification

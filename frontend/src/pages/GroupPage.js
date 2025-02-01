@@ -1,20 +1,11 @@
-// src/pages/GroupPage.jsx
-
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Button, Card, Spinner, Alert } from 'react-bootstrap';
-import { getGroupPosts, getCurrentUser, setAuthHeader } from '../services/api'; // Correct API calls and setAuthHeader
-import Layout from '../components/Layout';  // Import Layout component
+import { fetchGroupPosts, setAuthHeader } from '../services/api'; // Updated import
+import Layout from '../components/Layout';
 import './style.css';
 
-// Get the token from localStorage
-const token = localStorage.getItem('authToken');
-
-// Set the Authorization header if the token exists
-if (token) {
-  setAuthHeader(token);  // This will set the auth token for API requests
-}
-
+// GroupPage component
 const GroupPage = () => {
   const { groupId } = useParams(); // Get groupId from URL params
   const [posts, setPosts] = useState([]);
@@ -22,18 +13,20 @@ const GroupPage = () => {
   const [error, setError] = useState(null);
   const [alertMessage, setAlertMessage] = useState(''); // State for alert message
 
-  
+  // Get the token from localStorage and set the Authorization header
+  const token = localStorage.getItem('authToken');
+  useEffect(() => {
+    if (token) {
+      setAuthHeader(token);  // Set the token in the header when the component mounts
+    }
+  }, [token]);
+
   // Fetch posts for the group
   useEffect(() => {
-    const fetchGroupPosts = async () => {
+    const fetchPosts = async () => {
       try {
-        const user = await getCurrentUser();
-        if (user) {
-          const response = await getGroupPosts(groupId); // Fetch posts
-          setPosts(response.data);
-        } else {
-          setError("You must be logged in to see posts.");
-        }
+        const response = await fetchGroupPosts(groupId); // Fetch posts for the group
+        setPosts(response); // Assuming response is an array of posts
       } catch (err) {
         setError("Failed to load posts. Please try again.");
       } finally {
@@ -41,13 +34,13 @@ const GroupPage = () => {
       }
     };
 
-    fetchGroupPosts();
-  }, [groupId],'/posts');
+    fetchPosts();
+  }, [groupId]);
 
   // Handle button click (Like, Share, Follow)
   const handleAction = (action) => {
-    setAlertMessage(`You have successfully ${action} this post!`); // Set the alert message
-    setTimeout(() => setAlertMessage(''), 3000); // Clear alert after 3 seconds
+    setAlertMessage(`You have successfully ${action} this post!`);
+    setTimeout(() => setAlertMessage(''), 3000);
   };
 
   if (loading) {
@@ -63,7 +56,6 @@ const GroupPage = () => {
       <div className="container mt-4">
         <h2>Group Posts</h2>
 
-        {/* Show Alert Message */}
         {alertMessage && <Alert variant="success" className="mt-3">{alertMessage}</Alert>}
 
         <div className="row">
