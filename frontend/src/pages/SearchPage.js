@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchGroupPosts, fetchGroups } from '../services/api'; // Assuming these service functions are correct
+import { fetchGroups, fetchGroupPosts } from '../services/api'; // Correct import for fetchGroups and fetchGroupPosts
 import Post from '../components/Post';
 import GroupCard from '../components/GroupCard';
 import { Button } from 'react-bootstrap';

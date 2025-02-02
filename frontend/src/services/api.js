@@ -52,8 +52,8 @@ export const logout = () => {
 };
 
 // POST: Register a new user
-export const register = (email, password, username) => {
-  return api.post('/register', { email, password, username })
+export const currentUser = (email, password, username) => {
+  return api.post('/current_user', { email, password, username })
     .then(response => response.data)
     .catch(error => {
       throw error.response ? error.response.data : error.message;
@@ -139,3 +139,5 @@ export const deletePost = (postId) => {
       throw error.response ? error.response.data : error.message;
     });
 };
+
+export default api

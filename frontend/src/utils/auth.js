@@ -11,6 +11,15 @@ export const getAuthToken = () => {
   return localStorage.getItem('authToken');  // Retrieve token from localStorage
 };
 
+// Function to set the token (to store it in localStorage)
+export const setAuthToken = (token) => {
+  if (token) {
+    localStorage.setItem('authToken', token); // Store the token in localStorage
+  } else {
+    localStorage.removeItem('authToken'); // Remove the token if it's null or undefined
+  }
+};
+
 // Utility function to remove the token (for logout purposes)
 export const logoutUser = () => {
   localStorage.removeItem('authToken');  // Remove token from localStorage

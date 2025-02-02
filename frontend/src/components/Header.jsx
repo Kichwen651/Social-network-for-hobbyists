@@ -1,14 +1,20 @@
 import React, { useContext } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { UserContext } from '../contexts/UserContextProvider'; // Assuming UserContext is where user data is managed
+import { matchPath } from 'react-router-dom'; // For matching dynamic group routes
 
 const Header = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { currentUser, logout } = useContext(UserContext); // Accessing currentUser and logout from the UserContext
+
+  // Check if the current route matches the group dynamic path (e.g., /group/:groupId)
+  const isGroupPage = matchPath("/group/:groupId", location.pathname);
 
   // Handle logout action
   const handleLogout = () => {
     logout(); // This will clear the user state from the context and localStorage
+    navigate('/login'); // Redirect to login page after logout
   };
 
   return (
@@ -41,7 +47,7 @@ const Header = () => {
             About
           </Link>
           <Link 
-            className={`nav-link ${location.pathname === '/group/1' ? 'active' : ''}`} 
+            className={`nav-link ${isGroupPage ? 'active' : ''}`} 
             to="/group/1"
           >
             Group

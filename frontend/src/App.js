@@ -14,7 +14,7 @@ import AboutPage from './pages/AboutPage'; // AboutPage component
 import SignupPage from './pages/SignupPage'; // SignupPage component
 
 // A PrivateRoute component that redirects to login if user is not logged in
-const PrivateRoute = ({ element }) => {
+const PrivateRoute = ({ children }) => {
   const { currentUser } = React.useContext(UserContext); // Get current user from context
 
   if (!currentUser) {
@@ -22,7 +22,7 @@ const PrivateRoute = ({ element }) => {
     return <Navigate to="/login" />;
   }
 
-  return element;
+  return children;
 };
 
 const App = () => {
@@ -43,13 +43,13 @@ const App = () => {
             <Route path="/login" element={<LoginPage />} />
             
             {/* Authenticated Routes (Protected) */}
-            <Route path="/profile" element={<PrivateRoute element={<ProfilePage />} />} />
-            <Route path="/edit-profile" element={<PrivateRoute element={<EditProfilePage />} />} />
-            <Route path="/search" element={<PrivateRoute element={<SearchPage />} />} />
-            <Route path="/logout" element={<PrivateRoute element={<LogoutPage />} />} />
+            <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
+            <Route path="/edit-profile" element={<PrivateRoute><EditProfilePage /></PrivateRoute>} />
+            <Route path="/search" element={<PrivateRoute><SearchPage /></PrivateRoute>} />
+            <Route path="/logout" element={<PrivateRoute><LogoutPage /></PrivateRoute>} />
             
             {/* Dynamic Group Route */}
-            <Route path="/group/:groupId" element={<PrivateRoute element={<GroupPage />} />} />
+            <Route path="/group/:groupId" element={<PrivateRoute><GroupPage /></PrivateRoute>} />
             
             {/* Catch-all Route for 404 */}
             <Route path="*" element={<Navigate to="/" />} /> {/* Redirect to Home page if no match */}

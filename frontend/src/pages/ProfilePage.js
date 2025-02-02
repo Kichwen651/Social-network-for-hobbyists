@@ -6,10 +6,10 @@ import maleAvatar from '../assets/male.jpeg'; // Male avatar image
 import femaleAvatar from '../assets/female.jpeg'; // Female avatar image
 
 const ProfilePage = () => {
-  const { currentUser, logout, loading } = useContext(UserContext); // Using context to get user data
+  const { currentUser, logout, loading, updateUser } = useContext(UserContext); // Using context to get user data
   const navigate = useNavigate();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [avatar, setAvatar] = useState(null); // Avatar state
+  const [avatar, setAvatar] = useState(currentUser?.avatar || null); // Avatar state with fallback to currentUser's avatar
 
   // Show an alert when the user successfully logs in
   useEffect(() => {
@@ -23,7 +23,7 @@ const ProfilePage = () => {
     if (!currentUser) {
       navigate('/login'); // Navigate to login page if no user is logged in
     }
-  }, [currentUser, navigate]); // The effect will run when currentUser changes
+  }, [currentUser, navigate]);
 
   // If the user is still loading, display a loading spinner
   if (loading) {
@@ -45,12 +45,9 @@ const ProfilePage = () => {
 
   // Handle avatar selection logic
   const handleAvatarSelection = (selectedGender) => {
-    if (selectedGender === 'Male') {
-      setAvatar(maleAvatar); // Set male avatar image
-    } else {
-      setAvatar(femaleAvatar); // Set female avatar image
-    }
-    console.log("Avatar selected: ", selectedGender); // Log to check if avatar selection works
+    const newAvatar = selectedGender === 'Male' ? maleAvatar : femaleAvatar;
+    setAvatar(newAvatar); // Update selected avatar
+    updateUser({ ...currentUser, avatar: newAvatar }); // Update user context and localStorage with new avatar
 
     // After selecting avatar, navigate to HomePage
     navigate('/home');
