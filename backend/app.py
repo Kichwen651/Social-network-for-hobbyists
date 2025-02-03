@@ -17,7 +17,7 @@ app = Flask(__name__)
 CORS(app, origins=["http://localhost:3000"])  # Allow localhost for frontend development
 
 # Database URI from environment variable
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///hobbies.db')  # SQLite for development
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'postgresql://hobbiesdb_62zk_user:qpmCedrqpGLpOFYHEIT9pawAe769ViIG@dpg-cug704lsvqrc738c53t0-a.oregon-postgres.render.com/hobbiesdb_62zk')  # SQLite for development
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Disable unnecessary modification tracking
 migrate = Migrate(app, db)
 db.init_app(app)
