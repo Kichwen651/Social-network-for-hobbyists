@@ -30,16 +30,47 @@ This is a social network platform for hobbyists to connect, share posts, join gr
 - **Database Migration**: Alembic
 - **CORS**: Flask-CORS (for enabling cross-origin resource sharing)
 
-## Installation
+###  Installation
+
+## backend
+1.Set up a virtual environment:
+pipenv install
+pipenv shell
+2.Install the required Python dependencies:
+pipenv install -r requirements.txt
+3.Configure the environment variables for your project 
+4.Run database migrations to set up the database:
+flask db init
+flask db migrate -m""
+flask db upgrade
+5.Start the Flask development server:
+flask run
+## frontend
+1.Navigate to the frontend directory 
+cd frontend
+2.Install the required Node.js dependencies:
+npm install
+3.Start the frontend development server:
+npm start
+
 
 ### Prerequisites
 
 - Python 3.8+
-- PostgreSQL (if using PostgreSQL for production)
+- PostgreSQL (for production) or SQLite (for local development)
+- Node.js (for frontend development)
 - pip (Python package installer)
-- Node.js (for frontend development, optional)
+
+### Git repo link
+
+https://github.com/Kichwen651/Social-network-for-hobbyists
 
 ### live demo
 https://www.loom.com/share/0e569b3b79b0465d91a5916f258708db?sid=061dd34f-eca9-4f08-bb56-10631bc6fa9e
 
 https://www.loom.com/share/fcb4086e52bc421498da0aa5d5337c1b?sid=36bae4f2-7e41-40bc-ae43-f49b9d504917
+
+### Vercel frontend
+https://hobbies-umber.vercel.app/
+
+
