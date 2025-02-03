@@ -6,6 +6,14 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 user_bp = Blueprint('user_bp', __name__)
 
 # CREATE - Add New User
+from flask import Blueprint, jsonify, request
+from models import db, User
+from werkzeug.security import generate_password_hash
+from flask_jwt_extended import jwt_required, get_jwt_identity
+
+user_bp = Blueprint('user_bp', __name__)
+
+# CREATE - Add New User
 @user_bp.route('/users', methods=['POST'])
 def add_user():
     data = request.get_json()
@@ -26,8 +34,21 @@ def add_user():
     # Hash the password before saving to the database
     hashed_password = generate_password_hash(password)
 
+    # If this is the first user, set them as an admin and approved
+    user_count = User.query.count()
+    is_admin = False
+    is_verified = False
+    is_approved = False
+
+    if user_count == 0:
+        is_admin = True
+        is_verified = True
+        is_approved = True
+
     # Create a new user
-    new_user = User(username=username, email=email, password=hashed_password, hobbies=hobbies)
+    new_user = User(username=username, email=email, password=hashed_password, 
+                    hobbies=hobbies, is_admin=is_admin, is_verified=is_verified, 
+                    is_approved=is_approved)
 
     try:
         db.session.add(new_user)
@@ -36,6 +57,7 @@ def add_user():
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": f"Failed to create user: {e}"}), 500
+
 
 # READ - Get All Users (Admin only)
 @user_bp.route('/users', methods=['GET'])
