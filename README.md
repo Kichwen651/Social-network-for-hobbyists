@@ -39,5 +39,7 @@ This is a social network platform for hobbyists to connect, share posts, join gr
 - pip (Python package installer)
 - Node.js (for frontend development, optional)
 
-### Steps
+### live demo
+https://www.loom.com/share/0e569b3b79b0465d91a5916f258708db?sid=061dd34f-eca9-4f08-bb56-10631bc6fa9e
 
+https://www.loom.com/share/fcb4086e52bc421498da0aa5d5337c1b?sid=36bae4f2-7e41-40bc-ae43-f49b9d504917
