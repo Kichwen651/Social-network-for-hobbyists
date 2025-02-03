@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { isAuthenticated, getAuthToken } from '../utils/auth';  // Correct path to auth.js
 
-const apiUrl = 'http://127.0.0.1:5000/api';  // Your API base URL
+const apiUrl = 'https://social-network-for-hobbyists.onrender.com/api';  // Your API base URL
 
 // Create an Axios instance with default settings
 const api = axios.create({
