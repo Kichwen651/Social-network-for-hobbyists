@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchGroups, fetchGroupPosts } from '../services/api'; // Correct import for fetchGroups and fetchGroupPosts
+import { fetchGroups, fetchAllPosts } from '../services/api'; // Import both fetchGroups and fetchAllPosts
 import Post from '../components/Post';
 import GroupCard from '../components/GroupCard';
 import { Button } from 'react-bootstrap';
@@ -20,18 +20,12 @@ const SearchPage = () => {
         setLoading(true);
         setError(null);  // Clear previous errors
         const groupsData = await fetchGroups();  // Fetch all groups
-        
-        // Fetch posts for each group
-        const postsPromises = groupsData.map(group => fetchGroupPosts(group.id));  // Get posts for each group
-        const postsData = await Promise.all(postsPromises);  // Resolve all posts for each group
-
-        // Flatten the posts data into a single array
-        const allPosts = postsData.flat();
+        const postsData = await fetchAllPosts();  // Fetch all posts
 
         // Ensure data is valid
-        if (groupsData && allPosts) {
+        if (groupsData && postsData) {
           setSearchResults({
-            posts: allPosts,
+            posts: postsData,
             groups: groupsData,
           });
         } else {

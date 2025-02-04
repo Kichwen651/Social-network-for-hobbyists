@@ -1,5 +1,5 @@
-import React from 'react';
-import { Button } from 'react-bootstrap';
+import React, { useState } from 'react';
+import { Button, Alert, Form } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import cooking from '../assets/cooking.jpg';
 import dancing from '../assets/dancing.jpg';
@@ -7,12 +7,12 @@ import football from '../assets/football.jpg';
 import gaming from '../assets/gaming.jpg';
 import yoga from '../assets/yoga.jpg';
 import basketball from '../assets/basketball.jpg';
-import './style.css'; // Make sure your styles are defined here
+import './style.css'; // Ensure styles are defined here
 
 const HomePage = () => {
   const navigate = useNavigate();
 
-  // Define hobbies and their corresponding images based on gender
+  // Define hobbies and their corresponding images
   const hobbies = [
     { name: 'Football', image: football },
     { name: 'Basketball', image: basketball },
@@ -32,6 +32,69 @@ const HomePage = () => {
     } else {
       navigate('/login'); // Redirect to login page if not logged in
     }
+  };
+
+  // State to manage the images and descriptions of each hobby
+  const [hobbyImages, setHobbyImages] = useState(
+    hobbies.reduce((acc, hobby) => {
+      acc[hobby.name] = { imageUrl: '', description: '' };
+      return acc;
+    }, {})
+  );
+
+  const [groupCreated, setGroupCreated] = useState(false);
+
+  // Handle input changes for image URL and description
+  const handleInputChange = (hobbyName, field, value) => {
+    setHobbyImages((prev) => ({
+      ...prev,
+      [hobbyName]: {
+        ...prev[hobbyName],
+        [field]: value,
+      },
+    }));
+  };
+
+  // Add Image URL for a hobby
+  const handleAddImage = (hobbyName) => {
+    const { imageUrl, description } = hobbyImages[hobbyName];
+    if (imageUrl && description) {
+      alert(`${hobbyName} image added successfully!`);
+      // Reset the form fields for the current hobby
+      setHobbyImages((prev) => ({
+        ...prev,
+        [hobbyName]: { imageUrl: '', description: '' },
+      }));
+    } else {
+      alert('Please provide both image URL and description!');
+    }
+  };
+
+  // Update Image URL for a hobby
+  const handleUpdateImage = (hobbyName) => {
+    const { imageUrl, description } = hobbyImages[hobbyName];
+    if (imageUrl && description) {
+      alert(`${hobbyName} image updated successfully!`);
+    } else {
+      alert('Please provide both image URL and description!');
+    }
+  };
+
+  // Delete Image URL for a hobby
+  const handleDeleteImage = (hobbyName) => {
+    setHobbyImages((prev) => ({
+      ...prev,
+      [hobbyName]: { imageUrl: '', description: '' },
+    }));
+    alert(`${hobbyName} image deleted successfully!`);
+  };
+
+  // Handle Create Group (simulate group creation)
+  const handleCreateGroup = () => {
+    alert('Group added successfully!');
+    setGroupCreated(true);
+    // Navigate to the first hobby's group page after creating a group
+    navigate(`/group/${hobbies[0].name.toLowerCase()}`);
   };
 
   return (
@@ -74,6 +137,50 @@ const HomePage = () => {
           ))}
         </div>
       </div>
+
+      {/* Image Management Section */}
+      <div className="image-management mt-4">
+        <h2 className="fw-bold mb-4">Manage Hobby Image</h2>
+        {hobbies.map((hobby) => (
+          <div key={hobby.name} className="mb-4">
+            <Form>
+              <Form.Group className="mb-3">
+                <Form.Label>{hobby.name} Image URL</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="Enter image URL"
+                  value={hobbyImages[hobby.name].imageUrl}
+                  onChange={(e) => handleInputChange(hobby.name, 'imageUrl', e.target.value)}
+                />
+              </Form.Group>
+
+              <Form.Group className="mb-3">
+                <Form.Label>{hobby.name} Image Description</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="Enter image description"
+                  value={hobbyImages[hobby.name].description}
+                  onChange={(e) => handleInputChange(hobby.name, 'description', e.target.value)}
+                />
+              </Form.Group>
+
+              <Button variant="success" onClick={() => handleAddImage(hobby.name)}>Add Image</Button>
+              <Button variant="warning" onClick={() => handleUpdateImage(hobby.name)} className="ms-2">Update Image</Button>
+              <Button variant="danger" onClick={() => handleDeleteImage(hobby.name)} className="ms-2">Delete Image</Button>
+            </Form>
+          </div>
+        ))}
+      </div>
+
+      {/* Add Group Button */}
+      <div className="mt-4">
+        <Button variant="primary" onClick={handleCreateGroup}>
+          Add Group
+        </Button>
+      </div>
+
+      {/* Display Alert after Group Created */}
+      {groupCreated && <Alert variant="success" className="mt-3">Group added successfully!</Alert>}
     </div>
   );
 };

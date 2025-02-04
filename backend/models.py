@@ -15,7 +15,6 @@ class User(db.Model):
     is_approved = db.Column(db.Boolean, default=False)
     is_admin = db.Column(db.Boolean, default=False)
     password = db.Column(db.String(512), nullable=False)
-
     hobbies = db.Column(db.String(500), nullable=True, default="No hobbies specified")  # Set default value
     is_verified = db.Column(db.Boolean, default=False)  # Used for account verification
 
@@ -26,14 +25,14 @@ class User(db.Model):
     def __repr__(self):
         return f"<User {self.username}>"
 
-
 # Group Model (A group for hobbyists, created by users)
 class Group(db.Model):
-    __tablename__ = 'groups'  # Explicitly naming the table for clarity
+    __tablename__ = 'groups'
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(128), nullable=False)
     description = db.Column(db.String(256), nullable=False)
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    media_url = db.Column(db.String(255), nullable=True, default="")
 
     # Relationship with Post model
     posts = db.relationship('Post', backref='group', lazy=True)
@@ -47,7 +46,6 @@ class Post(db.Model):
     __tablename__ = 'posts'  # Explicitly naming the table for clarity
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.String(500), nullable=False)
-    media_url = db.Column(db.String(500))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # Corrected the reference
@@ -55,7 +53,6 @@ class Post(db.Model):
 
     def __repr__(self):
         return f"<Post {self.content[:20]}...>"
-
 
 # Token Blocklist Model (Stores revoked JWT tokens)
 class TokenBlocklist(db.Model):
